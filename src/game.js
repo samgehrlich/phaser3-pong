@@ -36,16 +36,17 @@ function preload() {
 }
 
 function create() {
+    const paddleMargin = 80;
     player = this.physics.add.sprite(
-        400, // x position
-        600, // y position
+        this.physics.world.bounds.width, // x position
+        this.physics.world.bounds.height / 2, // y position
         'paddle', // key of image for the sprite
     );
     player.setRotation(toRadians(90));
 
     ball = this.physics.add.sprite(
-        400, // x position
-        565, // y position
+        this.physics.world.bounds.width / 2, // x position
+        this.physics.world.bounds.height / 2, // y position
         'ball' // key of image for the sprite
     );
 
@@ -116,27 +117,26 @@ function update() {
         return;
     }
 
-    player.body.setVelocityX(0);
+    player.body.setVelocityY(0);
 
-    if (cursors.left.isDown) {
-        player.body.setVelocityX(-350);
-    } else if (cursors.right.isDown) {
-        player.body.setVelocityX(350);
+    if (cursors.up.isDown) {
+        player.body.setVelocityY(-350);
+    } else if (cursors.down.isDown) {
+        player.body.setVelocityY(350);
     }
 
     if (!gameStarted) {
-        ball.setX(player.x);
-        
         if (cursors.space.isDown) {
             gameStarted = true;
-            ball.setVelocityY(-200);
+            ball.setVelocityX(Math.random * 10);
+            ball.setVelocityY(Math.random() * 10);
             openingText.setVisible(false);
         }
     }
 }
 
 function isGameOver(world) {
-    return ball.body.y > world.bounds.height;
+    return ball.body.x > world.bounds.width || ball.body.x < 0;
 }
 
 function isWon() {
