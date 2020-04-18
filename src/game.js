@@ -20,6 +20,10 @@ const config = {
     }
 };
 
+function toRadians(degrees) {
+    return degrees * (Math.PI / 180);
+}
+
 const game = new Phaser.Game(config);
 
 let player, ball, cursors;
@@ -27,8 +31,8 @@ let gameStarted = false;
 let openingText, gameOverText, playerWonText;
 
 function preload() {
-    this.load.image('ball', 'assets/images/ball_32_32.png');
-    this.load.image('paddle', 'assets/images/lie-down.png');
+    this.load.image('ball', '../assets/images/ball.png');
+    this.load.image('paddle', '../assets/images/paddle.png');
 }
 
 function create() {
@@ -37,6 +41,7 @@ function create() {
         600, // y position
         'paddle', // key of image for the sprite
     );
+    player.setRotation(toRadians(90));
 
     ball = this.physics.add.sprite(
         400, // x position
