@@ -27,8 +27,10 @@ function toRadians(degrees) {
 const game = new Phaser.Game(config);
 
 let player, ball, cursors;
+const keys = {};
 let gameStarted = false;
-let openingText, gameOverText, playerWonText;
+let openingText, player1VictoryText, player2VictoryText;
+const maxBallVelocity = 400;
 
 function preload() {
     this.load.image('ball', '../assets/images/ball.png');
@@ -36,26 +38,37 @@ function preload() {
 }
 
 function create() {
-    const paddleMargin = 80;
-    player = this.physics.add.sprite(
-        this.physics.world.bounds.width, // x position
-        this.physics.world.bounds.height / 2, // y position
-        'paddle', // key of image for the sprite
-    );
-    player.setRotation(toRadians(90));
-
     ball = this.physics.add.sprite(
         this.physics.world.bounds.width / 2, // x position
         this.physics.world.bounds.height / 2, // y position
         'ball' // key of image for the sprite
     );
+    ball.setVisible(false);
+        
+    player1 = this.physics.add.sprite(
+        this.physics.world.bounds.width - (ball.body.width / 2 + 1), // x position
+        this.physics.world.bounds.height / 2, // y position
+        'paddle', // key of image for the sprite
+    );
+
+    player2 = this.physics.add.sprite(
+        (ball.body.width / 2 + 1), // x position
+        this.physics.world.bounds.height / 2, // y position
+        'paddle', // key of image for the sprite
+    );
 
     cursors = this.input.keyboard.createCursorKeys();
-    player.setCollideWorldBounds(true);
+    keys.w = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+    keys.s = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+
+    player1.setCollideWorldBounds(true);
+    player2.setCollideWorldBounds(true);
     ball.setCollideWorldBounds(true);
     ball.setBounce(1, 1);
-    player.setImmovable(true);
-    this.physics.add.collider(ball, player, hitPlayer, null, this);
+    player1.setImmovable(true);
+    player2.setImmovable(true);
+    this.physics.add.collider(ball, player1, hitPlayer, null, this);
+    this.physics.add.collider(ball, player2, hitPlayer, null, this);
 
     openingText = this.add.text(
         this.physics.world.bounds.width / 2,
@@ -70,11 +83,11 @@ function create() {
     
     openingText.setOrigin(0.5);
 
-    // Create game over text
-    gameOverText = this.add.text(
+    // Create player 1 victory text
+    player1VictoryText = this.add.text(
         this.physics.world.bounds.width / 2,
         this.physics.world.bounds.height / 2,
-        'Game Over',
+        'Point for player 1!',
         {
             fontFamily: 'Monaco, Courier, monospace',
             fontSize: '50px',
@@ -82,16 +95,16 @@ function create() {
         }
     );
   
-    gameOverText.setOrigin(0.5);
+    player1VictoryText.setOrigin(0.5);
 
     // Make it invisible until the player loses
-    gameOverText.setVisible(false);
+    player1VictoryText.setVisible(false);
 
     // Create the game won text
-    playerWonText = this.add.text(
+    player2VictoryText = this.add.text(
         this.physics.world.bounds.width / 2,
         this.physics.world.bounds.height / 2,
-        'You won!',
+        'Point for player 2!',
         {
             fontFamily: 'Monaco, Courier, monospace',
             fontSize: '50px',
@@ -99,59 +112,64 @@ function create() {
         }
     );
 
-    playerWonText.setOrigin(0.5);
+    player2VictoryText.setOrigin(0.5);
 
     // Make it invisible until the player wins
-    playerWonText.setVisible(false);
+    player2VictoryText.setVisible(false);
 }
 
 function update() {
-    if (isGameOver(this.physics.world)) {
-        gameOverText.setVisible(true);
+    if (isPlayer1Point()) {
+        player1VictoryText.setVisible(true);
         ball.disableBody(true, true);
         return;
     }
-    if (isWon()) {
-        playerWonText.setVisible(true);
+    if (isPlayer2Point()) {
+        player2VictoryText.setVisible(true);
         ball.disableBody(true, true);
         return;
     }
 
-    player.body.setVelocityY(0);
+    player1.body.setVelocityY(0);
+    player2.body.setVelocityY(0);
 
     if (cursors.up.isDown) {
-        player.body.setVelocityY(-350);
+        player1.body.setVelocityY(-350);
     } else if (cursors.down.isDown) {
-        player.body.setVelocityY(350);
+        player1.body.setVelocityY(350);
+    }
+
+    if (keys.w.isDown) {
+        player2.body.setVelocityY(-350);
+    } else if (keys.s.isDown) {
+        player2.body.setVelocityY(350);
     }
 
     if (!gameStarted) {
         if (cursors.space.isDown) {
+            ball.setVisible(true);
             gameStarted = true;
-            ball.setVelocityX(Math.random * 10);
-            ball.setVelocityY(Math.random() * 10);
+            const initialXSpeed = Math.random() * 200 + 50;
+            console.log('initial x:', initialXSpeed);
+            const initialYSpeed = Math.random() * 200 + 50;
+            console.log('initial y:', initialYSpeed);
+            ball.setVelocityX(initialXSpeed);
+            ball.setVelocityY(initialYSpeed);
             openingText.setVisible(false);
         }
     }
 }
 
-function isGameOver(world) {
-    return ball.body.x > world.bounds.width || ball.body.x < 0;
+function isPlayer1Point() {
+    return ball.body.x < player2.body.x;
 }
 
-function isWon() {
-    return false;
+function isPlayer2Point() {
+    return ball.body.x > player1.body.x;
 }
 
 function hitPlayer(ball, player) {
-    // Increase the velocity of the ball after it bounces
-    ball.setVelocityY(ball.body.velocity.y - 5);
-  
-    let newXVelocity = Math.abs(ball.body.velocity.x) + 5;
-    // If the ball is to the left of the player, ensure the X-velocity is negative
-    if (ball.x < player.x) {
-        ball.setVelocityX(-newXVelocity);
-    } else {
-        ball.setVelocityX(newXVelocity);
-    }
+    const combinedVelocity = ball.body.velocity.y + player.body.velocity.y;
+    const newVelocity = combinedVelocity < maxBallVelocity ? combinedVelocity : maxBallVelocity;
+    ball.setVelocityY(newVelocity);
 }
