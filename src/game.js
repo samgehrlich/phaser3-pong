@@ -20,10 +20,6 @@ const config = {
     }
 };
 
-function toRadians(degrees) {
-    return degrees * (Math.PI / 180);
-}
-
 const game = new Phaser.Game(config);
 
 let player, ball, cursors;
@@ -67,8 +63,8 @@ function create() {
     ball.setBounce(1, 1);
     player1.setImmovable(true);
     player2.setImmovable(true);
-    this.physics.add.collider(ball, player1, hitPlayer, null, this);
-    this.physics.add.collider(ball, player2, hitPlayer, null, this);
+    this.physics.add.collider(ball, player1, null, null, this);
+    this.physics.add.collider(ball, player2, null, null, this);
 
     openingText = this.add.text(
         this.physics.world.bounds.width / 2,
@@ -138,21 +134,21 @@ function update() {
     } else if (cursors.down.isDown) {
         player1.body.setVelocityY(350);
     }
-
+    // TODO: Allow player to move forward
+    
     if (keys.w.isDown) {
         player2.body.setVelocityY(-350);
     } else if (keys.s.isDown) {
         player2.body.setVelocityY(350);
     }
+    // TODO: Allow player to move forward
 
     if (!gameStarted) {
         if (cursors.space.isDown) {
             ball.setVisible(true);
             gameStarted = true;
             const initialXSpeed = Math.random() * 200 + 50;
-            console.log('initial x:', initialXSpeed);
             const initialYSpeed = Math.random() * 200 + 50;
-            console.log('initial y:', initialYSpeed);
             ball.setVelocityX(initialXSpeed);
             ball.setVelocityY(initialYSpeed);
             openingText.setVisible(false);
@@ -169,7 +165,5 @@ function isPlayer2Point() {
 }
 
 function hitPlayer(ball, player) {
-    const combinedVelocity = ball.body.velocity.y + player.body.velocity.y;
-    const newVelocity = combinedVelocity < maxBallVelocity ? combinedVelocity : maxBallVelocity;
-    ball.setVelocityY(newVelocity);
+    // custom logic for changing ball x or y velocity
 }
