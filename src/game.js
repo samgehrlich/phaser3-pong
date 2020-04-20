@@ -26,7 +26,6 @@ let player, ball, cursors;
 const keys = {};
 let gameStarted = false;
 let openingText, player1VictoryText, player2VictoryText;
-const maxBallVelocity = 400;
 
 function preload() {
     this.load.image('ball', '../assets/images/ball.png');
